@@ -1,0 +1,7 @@
+{
+  "dependencies": {
+    "@node-minify/babel-minify": "^8.0.6",
+    "@node-minify/core": "^8.0.6",
+    "@node-minify/uglify-js": "^8.0.6"
+  }
+}
