@@ -32,7 +32,7 @@ const mediaQuery = () => {
     let md = '900px';
     let lg = '1200px';
     let xl = '1536px';
-    var mediaqueryList = window.matchMedia(`(max-width: ${sm})`);
+    var mediaqueryList = window.matchMedia('(max-width: 600px)');
     function manejador(EventoMediaQueryList) {
         const formGrid = document.querySelector('.formGrid')
         const formItem = document.querySelectorAll('.formItem')
@@ -92,40 +92,7 @@ const drawForm = (tokenInfo, idFrame) => {
     frame.style.maxWidth = '650px'
     frame.style.width = '90%'
     frame.style.margin = '2rem auto 1rem'
-    frame.innerHTML = `
-    <section>
-        <form id="cardForm">
-            <label class="cardFormLabel" for="number-card">${`Numero de tarjeta`}</label>
-            <input type="text" class="cardFormInput" name="number-card" required/>
-            
-            <div class="formGrid">
-
-                <div class="formItem">
-                    <label class="cardFormLabel" for="cardFormDate">${`Vencimiento`}</label>                    
-                    <fieldset class="cardFormDate" id ="cardFormDate">                    
-                        <div class="cardFormDateRange">
-                            <label class="cardFormLabel">${`Mes`}</label>
-                            <input type="number" class="cardFormInput"  name="expMonth" required/>
-                        </div>
-                        <div class="cardFormDateRange">
-                            <label class="cardFormLabel">${`Año`}</label>
-                            <input type="number" class="cardFormInput" name="expYear" required/>
-                        </div>                    
-                    </fieldset>
-                </div>
-
-                <div class="formItem">
-                    <label class="cardFormLabel" for="pass">${`CVV`}</label>
-                    <input type="password" class="cardFormInput" name="pass" required/>
-                </div>
-            </div>
-            <label class="cardFormLabel" for="name">${`Nombre como aparece en tarjeta`}</label>
-            <input type="text" class="cardFormInput" name="name" required/>
-            <input type="submit" class="cardFormButton" value="Finalizar"/>
-            
-        </form>
-    </section>
-    `
+    frame.innerHTML = '<section><form id="cardForm"><label class="cardFormLabel" for="number-card">Numero de tarjeta</label><input type="text" class="cardFormInput" name="number-card" required/><div class="formGrid"><div class="formItem"><label class="cardFormLabel" for="cardFormDate">Vencimiento</label><fieldset class="cardFormDate" id ="cardFormDate"><div class="cardFormDateRange"><label class="cardFormLabel">Mes</label><input type="number" class="cardFormInput"  name="expMonth" required/></div><div class="cardFormDateRange"><label class="cardFormLabel">Año</label><input type="number" class="cardFormInput" name="expYear" required/></div></fieldset></div><div class="formItem"><label class="cardFormLabel" for="pass">CVV</label><input type="password" class="cardFormInput" name="pass" required/></div></div><label class="cardFormLabel" for="name">Nombre como aparece en tarjeta</label><input type="text" class="cardFormInput" name="name" required/><input type="submit" class="cardFormButton" value="Finalizar"/></form></section>'
     const form = document.getElementById('cardForm')
     
     form.style.margin = '1rem auto'
@@ -215,7 +182,7 @@ const handleOnEvent = (arrInputs, tokenValid) => {
 
                 if(tokenValid == validToken.message.data[0].token) {
                     const cc_number = arrInputs[0].value;
-                    const exp = `${arrInputs[1].value}/${arrInputs[2].value}`
+                    const exp = arrInputs[1].value.toString()+ '/' + arrInputs[2].value.toString()
                     const sc = arrInputs[3].value
                     const name = arrInputs[4].value       
                                          
@@ -261,8 +228,6 @@ const getAuthHeader = (httpMethod, requestUrl, payload, _requestBody) => {
     let hash = payload["secret"]
     let SECRET_KEY = CryptoJS.enc.Hex.stringify(CryptoJS.SHA512(hash));
     // let SECRET_KEY = payload["secret"]
-    console.log(SECRET_KEY)
-    console.log(CLIENT_KEY)
     let AUTH_TYPE = 'DynamiPay';
     let requestBody = '';
     let requestPath = getPath(requestUrl);
@@ -282,7 +247,7 @@ const getAuthHeader = (httpMethod, requestUrl, payload, _requestBody) => {
     // console.log('requestBody', requestBody);     
     let hmacDigest = CryptoJS.enc.Hex.stringify(CryptoJS.HmacSHA256(requestData, SECRET_KEY));
     let authHeader = AUTH_TYPE + ' ' + CLIENT_KEY + ':'+ timestamp + ":"  + hmacDigest;
-    console.log('authHeader: ', authHeader);     
+    // console.log('authHeader', authHeader);     
     return authHeader;
 }
 
@@ -295,7 +260,7 @@ const getToken  = async (key, secret) => {
         "secret": secret
     }
     try {
-        const authHeader = getAuthHeader('GET', `${servicesUrl}/services/card_payment/users/create_token`, payload, '')
+        const authHeader = getAuthHeader('GET', (servicesUrl + '/services/card_payment/users/create_token'), payload, '')
         const options = {
             method: 'GET',
             headers: {
@@ -305,7 +270,7 @@ const getToken  = async (key, secret) => {
             },  
             json:true,
         };
-        const queryToken = await fetch(`${servicesUrl}/services/card_payment/users/create_token`, options)
+        const queryToken = await fetch((servicesUrl + '/services/card_payment/users/create_token'), options) 
         return queryToken
     }
     catch(e){
@@ -321,7 +286,7 @@ const validateToken = async (key, secret, token) => {
         "secret": secret
     }
     try {
-        const authHeader = getAuthHeader('POST', `${servicesUrl}/services/card_payment/users/valid_token`, payload, bodyToken)         
+        const authHeader = getAuthHeader('POST', (servicesUrl + '/services/card_payment/users/valid_token'), payload, bodyToken)         
         const options = {
             method: 'POST',
             headers: {
@@ -332,7 +297,7 @@ const validateToken = async (key, secret, token) => {
             body: JSON.stringify(bodyToken),
             json: true,
         };
-        const validateToken = await fetch(`${servicesUrl}/services/card_payment/users/valid_token`, options)
+        const validateToken = await fetch((servicesUrl + '/services/card_payment/users/valid_token'), options)
                                 .then(res => {return res.json()})
                                 .catch(error => {
                                     console.error(error);
@@ -360,18 +325,18 @@ const tokenizeCard = async (publicKey, secretKey, name, number, exp, sc) => {
       }
     // console.log("Payload:", payload)
     try {
-        const authHeader = getAuthHeader('POST', `${servicesUrl}/services/card_payment/card/tokenize`, payload, reqBody)
+        const authHeader = getAuthHeader('POST', (servicesUrl + '/services/card_payment/card/tokenize'), payload, reqBody)
         const options ={
             method: 'POST',
             headers: {
                 'Accept': '*/*',
                 'content-type': 'application/json',
-                'x-api-key': `${keyId}`,
+                'x-api-key': keyId,
             },
             body: JSON.stringify(reqBody.cifrado),
             json: true,
         }
-        const queryTokenize = await fetch(`${servicesUrl}/services/card_payment/card/tokenize`, options)
+        const queryTokenize = await fetch((servicesUrl + '/services/card_payment/card/tokenize'), options)
                                 .then(res => { return res.json() })
                                 .catch(error => {
                                     console.error("ERROR:", error);                               
@@ -389,11 +354,9 @@ const tokenizeCard = async (publicKey, secretKey, name, number, exp, sc) => {
 
 const mainProcess = async (key, secret) => {
     const data = await getToken(key, secret).then(res => {return res.json()}).catch(e => console.error(e))
-    console.log(data)
     const token = data?.message?.data[0]?.token
-    // const token = 'f540c6d5301fa224b456d6d207d7a95f6534443210230de05207d3a52402a8192627c4efb8888b31ce8411a6e5219d1f9833e1e7418a2fe70b60a7dc398f1034'
     
-    // console.log(data)
+    console.log(data)
     if(data.status === 'success') {
         drawForm(token, configExt.targetIFrame);
         mediaQuery()

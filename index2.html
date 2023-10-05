@@ -1,0 +1,391 @@
+<html>
+    <head>
+        <title>TOKENIZE PINPEO</title>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/forge/0.10.0/forge.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+        <script>
+        // var CryptoJS = document.createElement('script');  
+// CryptoJS.setAttribute('src','https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js');
+// CryptoJS.setAttribute('crossorigin','anonymous');
+// CryptoJS.setAttribute('referrerpolicy','no-referrer');
+// document.head.prepend(CryptoJS);
+
+let _requestData;
+let _requestPath;
+//////////// utils
+const mastercardValidity = (inputtxt) => {
+var cardno = /^(?:5[1-5][0-9]{14})$/;
+if(inputtxt.value.match(cardno)) return true;
+else return false;
+}
+
+const validCVV = (CVV_Number) => {
+let regex = new RegExp(/^[0-9]{3,4}$/);
+if (CVV_Number == null)  return false;
+if (regex.test(CVV_Number) == true) return true;
+else return false;
+}
+
+const visaValidity = (inputtxt) => {
+var cardno = /^(?:4[0-9]{12}(?:[0-9]{3})?)$/;
+if(inputtxt.value.match(cardno)) return true;
+else return false;
+}
+
+const mediaQuery = () => {
+let xs = '0px';
+let sm = '600px';
+let md = '900px';
+let lg = '1200px';
+let xl = '1536px';
+var mediaqueryList = window.matchMedia('(max-width: 600px)');
+function manejador(EventoMediaQueryList) {
+    const formGrid = document.querySelector('.formGrid')
+    const formItem = document.querySelectorAll('.formItem')
+    if(EventoMediaQueryList.matches) {
+        formGrid.style.gridTemplateColumns = '1fr'
+        formItem.forEach((item, index) => {
+            item.style.width = '100%';
+            if(index === 1) {
+                item.style.justifySelf = 'start'
+            }
+        })
+    } else {
+        formGrid.style.gridTemplateColumns = '1fr 1fr'
+        
+        formItem.forEach((item, index) => { 
+            item.style.width = '92%'
+            if(index === 1) {
+                item.style.justifySelf = 'end'
+            }
+        })
+        }
+    }
+mediaqueryList.addListener(manejador);
+// mediaqueryList.removeListener(manejador);
+}
+
+const validateForm = (arrInputs) => {
+let isValid = true;
+let checkNumber = checkCVV = false;
+arrInputs.forEach((input) => {
+    // console.log(input.name)
+    if ( input.value === '' ) {
+        input.style.border= '1px solid red'
+        isValid = false;
+    } else {
+        input.style.border= '1px solid black'
+        if(input.name === 'number-card') {
+            checkNumber = visaValidity(input) || mastercardValidity(input)
+            // console.log("NUMBER:", checkNumber)
+            input.style.border=  checkNumber ? '1px solid black' : '1px solid red'
+        }
+        if(input.name === 'pass') {
+            checkCVV = validCVV(input.value)
+            // console.log("CVV:", checkCVV)
+            input.style.border=  checkCVV ? '1px solid black' : '1px solid red'
+        }
+    }   
+});
+
+if(!!!checkCVV) isValid = false
+if(!!!checkNumber) isValid = false
+return isValid;
+}
+
+const drawForm = (tokenInfo, idFrame) => {
+const frame = document.getElementById(idFrame)
+frame.style.maxWidth = '650px'
+frame.style.width = '90%'
+frame.style.margin = '2rem auto 1rem'
+frame.innerHTML = '<section><form id="cardForm"><label class="cardFormLabel" for="number-card">Numero de tarjeta</label><input type="text" class="cardFormInput" name="number-card" required/><div class="formGrid"><div class="formItem"><label class="cardFormLabel" for="cardFormDate">Vencimiento</label><fieldset class="cardFormDate" id ="cardFormDate"><div class="cardFormDateRange"><label class="cardFormLabel">Mes</label><input type="number" class="cardFormInput"  name="expMonth" required/></div><div class="cardFormDateRange"><label class="cardFormLabel">Año</label><input type="number" class="cardFormInput" name="expYear" required/></div></fieldset></div><div class="formItem"><label class="cardFormLabel" for="pass">CVV</label><input type="password" class="cardFormInput" name="pass" required/></div></div><label class="cardFormLabel" for="name">Nombre como aparece en tarjeta</label><input type="text" class="cardFormInput" name="name" required/><input type="submit" class="cardFormButton" value="Finalizar"/></form></section>'
+const form = document.getElementById('cardForm')
+
+form.style.margin = '1rem auto'
+form.style.display = 'grid'
+form.style.minWidth = '300px'
+form.style.padding = '0.4rem 0.4rem'
+
+const formGrid = document.querySelector('.formGrid')
+const formItem = document.querySelectorAll('.formItem')
+formGrid.style.display = 'grid'
+formGrid.style.gridTemplateColumns = '1fr 1fr'
+
+formItem.forEach((item, index) => {
+    item.style.display = 'grid'
+})
+
+inputDate = document.querySelectorAll(".cardFormDate .cardFormInput")
+inputDate.forEach((input, index) => {
+    input.style.display = 'grid'
+    input.style.width = '65%'
+    if(index === 1) {
+        // input.style.background = 'red'
+        input.style.alignSelf = 'end'
+    }
+})
+
+const formDate = document.querySelector('.cardFormDate');
+formDate.style.display = 'grid'
+// formDate.style.background = 'green'
+formDate.style.gridTemplateColumns = '1fr 1fr'
+formDate.style.alignItems = 'center'
+formDate.style.border = 'none'
+
+const formRange = document.querySelectorAll('.cardFormDateRange');
+formRange.forEach((input, index) => {
+    input.style.display = 'grid'
+    input.style.width = '80%'
+    // input.style.background = 'blue'
+    input.style.margin = '0 auto'
+    if(index === 0) {
+        input.style.justifySelf = 'start'
+    } else if(index === 1){
+        input.style.justifySelf = 'end'
+    }
+})
+
+const labels = document.querySelectorAll(".cardFormLabel")
+const inputs = document.querySelectorAll(".cardFormInput")
+const arrInputs = Array.prototype.slice.call(inputs)
+
+arrInputs.map((input, index) => { 
+    input.style.marginTop = '8px'
+    input.style.marginBottom = '0.6rem'
+    input.style.height = '24px'
+    input.style.border = '1px solid black'
+    input.style.borderRadius = '4px'
+    if(index === 1) {
+        // input.style.alignSelf = 'end'
+    }
+})
+
+const arrrLabels = Array.prototype.slice.call(labels)
+arrrLabels.map((label, index)=> {
+    label.style.fontSize = '0.8rem'
+})
+
+const submitButton = document.querySelector(".cardFormButton")
+submitButton.style.maxWidth = '300px'
+submitButton.style.minWidth = '180px'
+submitButton.style.marginTop = '16px'
+submitButton.style.height = '32px'
+submitButton.style.justifySelf = 'center'
+
+// submitButton.onclick = handleOnEvent(event);
+
+submitButton.addEventListener('click', handleOnEvent(arrInputs, tokenInfo));
+}
+
+const handleOnEvent = (arrInputs, tokenValid) => {
+return async function(event) {
+    event.preventDefault();
+    const validate = validateForm(arrInputs)
+    if(validate) {
+        try {
+            // console.log("FORM VALIDATED")
+            const validToken =  await validateToken(configExt.publicKey, configExt.secretKey, tokenValid);
+
+            if(tokenValid == validToken.message.data[0].token) {
+                const cc_number = arrInputs[0].value;
+                const exp = arrInputs[1].value.toString()+ '/' + arrInputs[2].value.toString()
+                const sc = arrInputs[3].value
+                const name = arrInputs[4].value       
+                                     
+                const tokenize = await tokenizeCard(configExt.publicKey, configExt.secretKey, name,cc_number,exp,sc)
+                
+                if(tokenize.message.code === 200)  {
+                    console.log(tokenize)
+
+                    if(!alert(tokenize.message.data.data[0].id))
+                    // window.location.href = 'https://www.google.com'
+                    return
+                } else {
+                    alert("Información invalida, intentalo de nuevo")
+                }
+
+            } else return
+            
+        } catch (error) {
+            console.error(error)
+            if(!alert("Información invalida, reiniciando el proceso....")){window.location.reload();}
+        }
+    } else {
+        if(!alert("Revisa la informacion..."))
+        console.log("Revisa la informacion")
+    }
+}
+}
+
+const getPath = (url) => {
+let pathRegex = /.+?\:\/\/.+?(\/.+?)(?:#|\?|$)/;
+let result = url.match(pathRegex);
+return result && result.length > 1 ? result[1] : ''; 
+}
+
+const getQueryString = (url) => {
+let arrSplit = url.split('?');
+return arrSplit.length > 1 ? url.substring(url.indexOf('?')+1) : ''; 
+}
+
+const getAuthHeader = (httpMethod, requestUrl, payload, _requestBody) => {
+// console.log(_requestBody)
+let CLIENT_KEY = payload["key"]
+let hash = payload["secret"]
+let SECRET_KEY = CryptoJS.enc.Hex.stringify(CryptoJS.SHA512(hash));
+// let SECRET_KEY = payload["secret"]
+let AUTH_TYPE = 'DynamiPay';
+let requestBody = '';
+let requestPath = getPath(requestUrl);
+_requestPath = requestPath;
+let queryString = getQueryString(requestUrl);
+if (httpMethod == 'GET' || !_requestBody) {
+        requestBody = '';
+    } else {
+        requestBody = JSON.stringify(_requestBody);
+//JSON.stringify(_requestBody).replace("\\n","").replace('\\"',"\"");
+    }   
+let timestamp = new Date().getTime(); 
+let requestData = [timestamp,httpMethod, requestPath, queryString, requestBody].join("");
+requestData = requestData.trim();
+_requestData = requestData;
+// console.log('requestData', requestData);
+// console.log('requestBody', requestBody);     
+let hmacDigest = CryptoJS.enc.Hex.stringify(CryptoJS.HmacSHA256(requestData, SECRET_KEY));
+let authHeader = AUTH_TYPE + ' ' + CLIENT_KEY + ':'+ timestamp + ":"  + hmacDigest;
+// console.log('authHeader', authHeader);     
+return authHeader;
+}
+
+//////////// querys
+const servicesUrl = 'https://api.dynamipay.io'
+const getToken  = async (key, secret) => {
+// console.log("FETCHING TOKEN...")
+const payload  = {
+    "key": key,
+    "secret": secret
+}
+try {
+    const authHeader = getAuthHeader('GET', (servicesUrl + '/services/card_payment/users/create_token'), payload, '')
+    const options = {
+        method: 'GET',
+        headers: {
+            'Accept': '*',
+            'content-type': 'application/json',
+            'authorization': authHeader,
+        },  
+        json:true,
+    };
+    const queryToken = await fetch((servicesUrl + '/services/card_payment/users/create_token'), options) 
+    return queryToken
+}
+catch(e){
+    console.error(e);
+}
+}
+
+const validateToken = async (key, secret, token) => {
+// console.log(" VALIDATING TOKEN...")
+const bodyToken = {token:token};
+const payload  = {
+    "key": key,
+    "secret": secret
+}
+try {
+    const authHeader = getAuthHeader('POST', (servicesUrl + '/services/card_payment/users/valid_token'), payload, bodyToken)         
+    const options = {
+        method: 'POST',
+        headers: {
+            'Accept': '*/*',
+            'content-type': 'application/json',
+            'authorization': authHeader
+        },
+        body: JSON.stringify(bodyToken),
+        json: true,
+    };
+    const validateToken = await fetch((servicesUrl + '/services/card_payment/users/valid_token'), options)
+                            .then(res => {return res.json()})
+                            .catch(error => {
+                                console.error(error);
+                                return null
+                            });
+    return validateToken
+}
+catch(e){
+    console.error(e);
+    return e
+}
+}
+
+const tokenizeCard = async (publicKey, secretKey, name, number, exp, sc) => {
+console.log("TOKENIZING...");
+const payload  = {
+    "key": publicKey,
+    "secret": secretKey
+}
+const reqBody = {
+    "pan": number,
+    "name_cc":name,
+    "sc":sc,
+    "exp":exp
+  }
+// console.log("Payload:", payload)
+try {
+    const authHeader = getAuthHeader('POST', (servicesUrl + '/services/card_payment/card/tokenize'), payload, reqBody)
+    const options ={
+        method: 'POST',
+        headers: {
+            'Accept': '*/*',
+            'content-type': 'application/json',
+            'x-api-key': keyId,
+        },
+        body: JSON.stringify(reqBody.cifrado),
+        json: true,
+    }
+    const queryTokenize = await fetch((servicesUrl + '/services/card_payment/card/tokenize'), options)
+                            .then(res => { return res.json() })
+                            .catch(error => {
+                                console.error("ERROR:", error);                               
+                                return null
+                            });
+    return queryTokenize
+}
+catch(e){
+    console.error(e);
+    return e
+}
+
+}
+
+
+const mainProcess = async (key, secret) => {
+const data = await getToken(key, secret).then(res => {return res.json()}).catch(e => console.error(e))
+const token = data?.message?.data[0]?.token
+
+console.log(data)
+if(data.status === 'success') {
+    drawForm(token, configExt.targetIFrame);
+    mediaQuery()
+}   
+} 
+
+
+setTimeout(()=>{
+//delay para cargar las variables
+if(document) mainProcess(configExt.publicKey, configExt.secretKey)  
+}, 400)
+        </script>
+    </head>
+    <body>
+        <div id="mainForm"></div>
+        <script>
+            const configExt = {
+                targetIFrame: "mainForm",          
+                company: 6028,
+                publicKey: 'aac7bf6e2417ceed210fe113f',
+                secretKey:'d2567c059f8340c5ba4f102977a5d69b1b883f55f9d990c66a2ea6d989097348'
+            };
+        </script>
+        </body>
+    </html>
+  
